@@ -1,5 +1,5 @@
 from unittest import TestCase
-from Calculations import *
+from Server_Management.Calculations import *
 
 
 class Test(TestCase):
