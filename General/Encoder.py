@@ -1,8 +1,5 @@
 from Initialize.Game_Innit import *
 
-# code doesnt work touch if you dare
-# sike code works now
-
 
 def encode(cards):  # (number, suit) 0=spades, 1=clubs, 2=diamonds, 3=hearts
     suit_conversions = ("Spades", "Clubs", "Diamonds", "Hearts")
