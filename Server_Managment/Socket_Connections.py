@@ -28,5 +28,8 @@ def client_handshake():
         return s
 
 
-def send_info(conn, addr, data):
-    conn.sendto(bytes(data, 'ascii'), addr)
+def send_info(data, s=None, conn=None, addr=None):
+    if conn is not None and addr is not None:
+        conn.sendto(bytes(data, 'utf-8'), addr)
+    elif s is not None:
+        s.sendall(data)
