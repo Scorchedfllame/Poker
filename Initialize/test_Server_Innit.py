@@ -4,7 +4,7 @@ from Socket_Managment.Socket_Connections import *
 import pickle
 
 
-address = '192.168.1.172'
+address = '10.40.19.203'
 port = 50007
 
 
