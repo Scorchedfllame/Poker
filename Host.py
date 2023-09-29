@@ -1,6 +1,6 @@
 from Initialize.Game_Innit import *
-from Server_Managment.Calculations import *
-from Server_Managment.Socket_Connections import *
+from Server_Management.Calculations import *
+from Socket_Managment.Socket_Connections import *
 import random
 
 
@@ -11,5 +11,4 @@ def host():
     gametime_deck, hands = deal(2, gametime_deck)
     print(hands)
     print(gametime_deck)
-    players.append(server_handshake())
-    send_info(players[0], 'yessir')
+    players.append(server_handshake(50007))

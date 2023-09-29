@@ -1,4 +1,3 @@
-
 def make_bet(bet, total_number_of_money):
     all_in = False
     amount_betting = 0

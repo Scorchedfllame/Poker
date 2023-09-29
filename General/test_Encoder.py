@@ -1,14 +1,10 @@
-import unittest
+from unittest import *
 from Encoder import *
 
 
-class MyTestCase(unittest.TestCase):
-    def test_encoder(self):
-        self.assertEqual(encode(['8 of Diamonds', '9 of Clubs', '10 of Spades']), [(8, 2), (9, 1), (10, 0)])
+class TestCardEncoder(TestCase):
+    def test_encode_cards(self):
+        self.assertEqual(encode_cards(['8 of Diamonds', '9 of Clubs', '10 of Spades']), [(8, 2), (9, 1), (10, 0)])
 
-    def test_decoder(self):
-        self.assertEqual(decode([(8, 2), (9, 1), (10, 0)]), ['8 of Diamonds', '9 of Clubs', '10 of Spades'])
-
-
-if __name__ == '__main__':
-    unittest.main()
+    def test_decode_cards(self):
+        self.assertEqual(decode_cards([(8, 2), (9, 1), (10, 0)]), ['8 of Diamonds', '9 of Clubs', '10 of Spades'])
