@@ -18,11 +18,11 @@ class TestHandhakeSetup(TestCase):
 class TestSendReceive(TestCase):
     def test_server_send(self):
         server_socket, connection, address = server_handshake()
-        send_info(connection, address, 'test')
+        send_info('test', conn=connection, addr=address)
         server_socket.close()
 
     def test_client_receive(self):
         s = client_handshake()
-        data = s.recv(1024)
+        data = s.recv(1024).decode('uft-8')
         self.assertEqual(data, b'test')
         s.close()

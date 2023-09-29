@@ -11,5 +11,5 @@ def host():
     gametime_deck, hands = deal(2, gametime_deck)
     print(hands)
     print(gametime_deck)
-    server_handshake()
+    players.append(server_handshake())
     send_info(players[0], 'yessir')
