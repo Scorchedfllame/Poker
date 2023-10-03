@@ -30,6 +30,7 @@ print(handTest)
 def check_flush(cards: list):
     if all(i[1] == cards[0][1] for i in cards):
         return score_for_highest(cards, 12)
+    return False
 
 
 def score_for_highest(cards:list, multiplier):
