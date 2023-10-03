@@ -2,7 +2,7 @@ from unittest import TestCase
 from Socket_Managment.Socket_Connections import *
 
 
-address = '10.40.20.135'
+address = '10.40.19.203'
 port = 50007
 
 

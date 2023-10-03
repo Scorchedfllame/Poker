@@ -14,12 +14,12 @@ print(decode_cards(handTest))
 print(handTest)
 
 # --Score Card--
-# 1: Royal Flush
-# 13: Straight Flush
+# 1: Royal Flush--
+# 13: Straight Flush--
 # 13: Four of a Kind
 # 13: Full House
-# 13: Flush
-# 13: Straight
+# 13: Flush--
+# 13: Straight--
 # 13: Three of a kind
 # 13: Two Pair
 # 13: Pair
@@ -39,6 +39,7 @@ def score_for_highest(cards:list, multiplier):
 def check_straight_flush(cards: list):
     if check_flush(cards) and check_straight(cards):
         return score_for_highest(cards, 18)
+    return False
 
 
 def check_straight(cards:list):
