@@ -14,7 +14,7 @@ print(decode_cards(handTest))
 print(handTest)
 
 # --Score Card--
-# 1: Royal Flush--
+# None: Royal Flush -> Highest Straight Flush--
 # 13: Straight Flush--
 # 13: Four of a Kind
 # 13: Full House
@@ -49,6 +49,14 @@ def check_straight(cards:list):
         if not(sort[x] - sort[x-1] == 1) and x > 0:
             return False
     return score_for_highest(cards, 10)
+
+
+def check_n_of_a_kind(n: int, cards: list):
+    highest = 0
+    for i in list(itertools.combinations(cards, n)):
+        if all(i[0][0] == x[0] for x in i):
+            highest = max(i[0][0], highest)
+    return highest
 
 
 def check_five(cards: list, size: int, checker):
