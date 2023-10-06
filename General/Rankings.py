@@ -6,33 +6,35 @@ def rank_hand(hand):
 
 
 # --Score Card--
-# None: Royal Flush -> Highest Straight Flush--
-# 13: Straight Flush--
-# 13: Four of a Kind--
-# 13: Full House--
-# 13: Flush--
-# 13: Straight--
-# 13: Three of a kind--
-# 13: Two Pair--
-# 13: Pair--
-# 13: High Card--
-# 13: Kicker--
+# 8: Royal Flush -> Highest Straight Flush--
+# 8: Straight Flush--
+# 7: Four of a Kind--
+# 6: Full House--
+# 5: Flush--
+# 4: Straight--
+# 3: Three of a kind--
+# 2: Two Pair--
+# 1: Pair--
+# 0: High Card--
+# First Digit: Kicker--
 
 
 def check_flush(cards: list):
     if all(i[1] == cards[0][1] for i in cards):
-        return score_for_highest(cards, 12)
+        if 1 in [x[0] for x in cards]:
+            return 5140
+        return score_for_highest(cards) + 5000
     return False
 
 
-def score_for_highest(cards:list, multiplier):
-    return max([x[0] for x in cards]) * 10 ** multiplier
+def score_for_highest(cards:list, multiplier=10):
+    return max([x[0] for x in cards]) * multiplier
 
 
 def check_straight_flush(cards: list):
     straight = check_straight(cards)
     if check_flush(cards) and straight:
-        return straight * 10 ** 8
+        return straight + 4000
     return False
 
 
@@ -47,8 +49,8 @@ def check_straight(cards: list):
         if not(sort[x] - sort[x-1] == 1) and x > 0:
             return False
     if 14 in nums:
-        return 14 * 10 ** 10
-    return score_for_highest(cards, 10)
+        return 4140
+    return score_for_highest(cards) + 4000
 
 
 def check_n_of_a_kind(n: int, cards: list, amount=1):
@@ -64,28 +66,28 @@ def check_n_of_a_kind(n: int, cards: list, amount=1):
 def check_4_of_a_kind(cards: list):
     value = check_n_of_a_kind(4, cards)
     if value:
-        return value * 10 ** 9
+        return value * 10 + 7000
     return False
 
 
 def check_3_of_a_kind(cards: list):
     value = check_n_of_a_kind(3, cards)
     if value:
-        return value * 10 ** 5
+        return value * 10 + 3000
     return False
 
 
 def check_pair(cards: list):
     value = check_n_of_a_kind(3, cards)
     if value:
-        return value * 10 ** 3
+        return value * 10 + 1000
     return False
 
 
 def check_2_pair(cards: list):
     first, second = check_n_of_a_kind(2, cards)
     if first and second:
-        return first * 10 * 4
+        return first * 20 + second * 10 + 2000
     return False
 
 
@@ -97,12 +99,12 @@ def check_full_house(cards: list):
         if three != i:
             two = i
     if two and three:
-        return (three * 10 ** 8) + (two * 10 ** 7)
+        return (three * 20) + (two * 10 ) + 6000
     return False
 
 
 def check_high_card(cards: list):
-    return score_for_highest(cards, 2)
+    return score_for_highest(cards)
 
 
 def add_kicker(cards: list):
