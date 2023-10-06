@@ -1,5 +1,4 @@
-from Socket_Managment.Socket_Connections import *
-from Server_Management.Classes import *
+from General.Classes import *
 import pickle
 
 

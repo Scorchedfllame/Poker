@@ -7,3 +7,10 @@ class Player:
 
     def __repr__(self):
         return f'{self.name} connected to {self.connection}'
+
+
+class Card:
+    def __init__(self, value, suit):
+        self.value = value
+        self.suit = suit
+        self.pocket = False
