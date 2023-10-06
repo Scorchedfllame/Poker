@@ -56,8 +56,8 @@ class TestCheckStraight(TestCase):
         self.assertEqual(largest_score, 6 * 10 ** 10)
 
     def test_highest_pass(self):
-        largest_score = check_straight([(12, 1), (10, 2), (9, 1), (11, 0), (13, 0)])
-        self.assertEqual(largest_score, 13 * 10 ** 10)
+        largest_score = check_straight([(12, 1), (10, 2), (9, 1), (11, 0), (13, 0), (1, 0)])
+        self.assertEqual(largest_score, 14 * 10 ** 10)
 
     def test_lowest_pass(self):
         largest_score = check_straight([(1, 1), (3, 2), (5, 1), (4, 0), (2, 0)])
@@ -76,7 +76,7 @@ class TestCheckStraight(TestCase):
         self.assertFalse(largest_score)
 
     def test_fail_4(self):
-        largest_score = check_straight([(13, 0), (12, 1), (11, 2), (10, 1), (1, 0)])
+        largest_score = check_straight([(13, 0), (12, 1), (11, 2), (10, 1), (2, 0)])
         self.assertFalse(largest_score)
 
 
@@ -134,3 +134,28 @@ class TestCheckNCards(TestCase):
     def test_check_4_of_a_kind_fail(self):
         largest_score = check_n_of_a_kind(4, [(2, 2), (2, 3), (2, 1), (4, 0), (13, 0)])
         self.assertFalse(largest_score)
+
+
+class TestBasicPairs(TestCase):
+    def test_check_4_of_a_kind(self):
+        self.assertEqual(check_4_of_a_kind([(3, 0), (3, 2), (3, 1), (3, 3)]), 3 * 10 ** 9)
+
+
+class TestCheckFullHouse(TestCase):
+    def test_basic_pass(self):
+        largest_score = check_full_house([(7, 1), (7, 2), (7, 3), (5, 2), (5, 0)])
+        self.assertEqual(largest_score, 7 * 10 ** 8 + 5 * 10 ** 7)
+
+    def test_secondary(self):
+        largest_score_1 = check_full_house([(5, 0), (5, 1), (5, 3), (2, 1), (2, 2)])
+        largest_score_2 = check_full_house([(5, 0), (5, 1), (5, 2), (3, 2), (3, 1)])
+        self.assertGreater(largest_score_2, largest_score_1)
+
+    def test_basic_fail_1(self):
+        self.assertFalse(check_full_house([(6, 0), (6, 1), (5, 0), (5, 1), (4, 0)]))
+
+    def test_basic_fail_2(self):
+        self.assertFalse(check_full_house([(5, 0), (6, 0), (7, 0), (8, 0), (9, 0)]))
+
+    def test_basic_fail_3(self):
+        self.assertFalse(check_full_house([(2, 0), (2, 1), (2, 0), (1, 1), (4, 0)]))
