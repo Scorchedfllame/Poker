@@ -1,4 +1,6 @@
 # Poker
 Game because we are bored
-PEEPEE
-Consists of multiple clients connecting to one server.
+
+Play poker over the internet with your frineds
+
+WIP
