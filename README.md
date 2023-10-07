@@ -1,4 +1,6 @@
 # Poker
-Game because we are bored
-PEEPEE
-Consists of multiple clients connecting to one server.
+Game because we are bored in advanced computer programming
+
+Play poker from anywhere in the school
+
+(WIP)
