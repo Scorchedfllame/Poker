@@ -1,7 +1,7 @@
 from unittest import TestCase
 from General.Rankings import *
-from Initialize.Game_Innit import create_deck
 from General.Encoder import *
+from Initialize.Game_Innit import *
 
 
 def create_new_deck():
@@ -199,3 +199,28 @@ class TestCheckForAll(TestCase):
             5
         )
         self.assertEqual(1002418, straight)
+
+
+class TestSetInHand(TestCase):
+    def test_true(self):
+        deck = create_new_deck()
+        cards = list(deck.values())
+        set_in_hand(cards)
+        for card in cards:
+            self.assertTrue(card.in_hand)
+
+    def test_false(self):
+        deck = create_new_deck()
+        cards = list(deck.values())
+        set_in_hand(cards, in_hand=False)
+        for card in cards:
+            self.assertFalse(card.in_hand)
+
+
+class TestGetHighestCard(TestCase):
+    def test_ace(self):
+        cards = create_new_deck()
+        ace = get_highest_card([
+            cards['Ace of Spades'], cards['King of Hearts'], cards["2 of Diamonds"], cards['5 of Clubs']
+        ])
+        self.assertEqual(cards['Ace of Spades'], ace)
