@@ -13,4 +13,4 @@ class Card:
     def __init__(self, value, suit):
         self.value = value
         self.suit = suit
-        self.pocket = False
+        self.in_hand = False
