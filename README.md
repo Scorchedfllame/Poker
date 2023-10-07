@@ -1,6 +1,6 @@
 # Poker
-Game because we are bored
+Game because we are bored in advanced computer programming
 
-Play poker over the internet with your frineds
+Play poker from anywhere in the school
 
-WIP
+(WIP)
