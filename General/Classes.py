@@ -1,12 +1,10 @@
 class Player:
-    def __init__(self, name, socket, connection):
+    def __init__(self, name):
         self.name = name
-        self.socket = socket
-        self.connection = connection
+        self.all_in = False
+        self.folded = False
         self.money = 0
-
-    def __repr__(self):
-        return f'{self.name} connected to {self.connection}'
+        self.curr_bet = 0
 
 
 class Card:
