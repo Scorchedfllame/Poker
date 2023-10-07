@@ -157,7 +157,7 @@ def check_five(cards: list, size: int, checker) -> float:
     return max(val)
 
 
-def check_for_all(cards: list, size: int) -> float:
+def check_for_all(cards: list, size: int = 5) -> float:
     maximum = []
     functions = [check_straight_flush, check_4_of_a_kind, check_full_house, check_flush, check_straight,
                  check_3_of_a_kind, check_2_pair, check_pair, check_high_card]
