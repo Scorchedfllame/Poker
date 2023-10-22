@@ -1,3 +1,6 @@
+import random
+
+
 class Player:
     def __init__(self, name):
         self.name = name
@@ -12,3 +15,14 @@ class Card:
         self.value = value
         self.suit = suit
         self.in_hand = False
+
+
+class Deck:
+    def __init__(self):
+        self.cards = []
+        for i in range(2, 15):
+            for y in range(4):
+                self.cards.append(Card(i, y))
+
+    def shuffle(self):
+        random.shuffle(self.cards)

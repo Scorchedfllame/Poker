@@ -15,7 +15,7 @@ def make_bet(bet, total_number_of_money) -> (int, int, bool):
     return amount_betting, amount_of_money_left, all_in
 
 
-def fold(current_bet: int, player: Player) -> None:
+def fold(player: Player) -> None:
     player.folded = True
 
 

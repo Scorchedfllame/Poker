@@ -19,7 +19,7 @@ class TestMakeBet(TestCase):
 class TestFold(TestCase):
     def test_fold(self):
         player_1 = Player('John')
-        fold(1000, player_1)
+        fold(player_1)
         self.assertTrue(player_1.folded)
 
 

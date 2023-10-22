@@ -1,11 +1,12 @@
 from unittest import TestCase
 from General.Rankings import *
 from General.Encoder import *
-from Initialize.Game_Innit import *
+from General.Classes import *
 
 
 def create_new_deck():
-    deck = create_deck()
+    deck = Deck()
+    deck = deck.cards
     keys = decode_cards([(card.value, card.suit) for card in deck])
     cards = {}
     for i in range(len(keys)):
