@@ -2,10 +2,10 @@ import gspread
 
 
 class Editor:
-    def write_cell(self, cell: str) -> None:
+    def write_cell(self, wks: gspread.worksheet, cell: str) -> None:
         pass
 
-    def read_cell(self, cell: str) -> None:
+    def read_cell(self, wks: gspread.worksheet, cell: str) -> None:
         pass
 
 
@@ -25,9 +25,7 @@ class Server(Editor):
         self.clients = []
 
     def handshake(self) -> bool:
-        if self.wks.acell("A1") == "Server Handshake":
-            return True
-        return False
+        return self.wks.acell("A1") == "Server Handshake"
 
     def kick_client(self, client: Client) -> None:
         self.rm_worksheet(client.worksheet)
