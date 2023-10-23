@@ -1,12 +1,13 @@
-class Player:
-    def __init__(self, name, socket, connection):
-        self.name = name
-        self.socket = socket
-        self.connection = connection
-        self.money = 0
+import random
 
-    def __repr__(self):
-        return f'{self.name} connected to {self.connection}'
+
+class Player:
+    def __init__(self, name):
+        self.name = name
+        self.all_in = False
+        self.folded = False
+        self.money = 0
+        self.curr_bet = 0
 
 
 class Card:
@@ -14,3 +15,14 @@ class Card:
         self.value = value
         self.suit = suit
         self.in_hand = False
+
+
+class Deck:
+    def __init__(self):
+        self.cards = []
+        for i in range(2, 15):
+            for y in range(4):
+                self.cards.append(Card(i, y))
+
+    def shuffle(self):
+        random.shuffle(self.cards)
