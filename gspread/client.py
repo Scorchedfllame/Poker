@@ -10,7 +10,7 @@ import warnings
 from http import HTTPStatus
 from typing import Any, Dict, List, Tuple, Type
 
-from google.auth.transport.requests import AuthorizedSession
+from google.auth import AuthorizedSession
 from requests import Response
 
 from .exceptions import APIError, SpreadsheetNotFound, UnSupportedExportFormat
@@ -53,7 +53,7 @@ class Client:
         self.timeout = None
 
     def login(self):
-        from google.auth.transport.requests import Request
+        from google.auth import Request
 
         self.auth.refresh(Request(self.session))
 

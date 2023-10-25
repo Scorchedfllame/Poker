@@ -11,9 +11,9 @@ import os
 import warnings
 from pathlib import Path
 
-from google.oauth2.credentials import Credentials
-from google.oauth2.service_account import Credentials as ServiceAccountCredentials
-from google_auth_oauthlib.flow import InstalledAppFlow
+from google.oauth2 import Credentials
+from google.oauth2 import Credentials as ServiceAccountCredentials
+from google_auth_oauthlib import InstalledAppFlow
 
 from .client import Client
 from .utils import DEPRECATION_WARNING_TEMPLATE

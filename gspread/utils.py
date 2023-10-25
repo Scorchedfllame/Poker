@@ -15,9 +15,9 @@ from math import inf
 from typing import Mapping
 from urllib.parse import quote as uquote
 
-from google.auth.credentials import Credentials as Credentials
-from google.oauth2.credentials import Credentials as UserCredentials
-from google.oauth2.service_account import Credentials as ServiceAccountCredentials
+from google.auth import Credentials as Credentials
+from google.oauth2 import Credentials as UserCredentials
+from google.oauth2 import Credentials as ServiceAccountCredentials
 
 from .exceptions import IncorrectCellLabel, InvalidInputValue, NoValidUrlKeyFound
 
