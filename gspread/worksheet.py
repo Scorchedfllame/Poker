@@ -6,14 +6,12 @@ This module contains common worksheets' models.
 
 """
 
-import warnings
 from typing import Union
 
 from .cell import Cell
 from .exceptions import GSpreadException
 from .urls import SPREADSHEET_URL, WORKSHEET_DRIVE_URL
 from .utils import (
-    DEPRECATION_WARNING_TEMPLATE,
     REQUIRED_KWARGS,
     Dimension,
     PasteOrientation,
@@ -29,9 +27,12 @@ from .utils import (
     combined_merge_values,
     convert_colors_to_hex_value,
     convert_hex_to_colors_dict,
+    deprecation_warning,
     fill_gaps,
     filter_dict_values,
     finditem,
+    get_a1_from_absolute_range,
+    is_full_a1_notation,
     is_scalar,
     numericise_all,
     rowcol_to_a1,
@@ -207,14 +208,13 @@ class Worksheet:
         """Tab color style. Dict with RGB color values.
         If any of R, G, B are 0, they will not be present in the dict.
         """
-        warnings.warn(
-            DEPRECATION_WARNING_TEMPLATE.format(
-                v_deprecated="6.0.0",
-                msg_deprecated="""color format will change to hex format "#RRGGBB".
+        deprecation_warning(
+            version="6.0.0",
+            msg="""color format will change to hex format "#RRGGBB".
                 To suppress warning, use "get_tab_color()" and convert back to dict format, use gspread.utils.convert_hex_to_colors_dict.
                 However, we recommend changing your code to use hex format.""",
-            )
         )
+
         return self._properties.get("tabColorStyle", {}).get("rgbColor", None)
 
     def get_tab_color(self) -> Union[str, None]:
@@ -366,6 +366,7 @@ class Worksheet:
         combine_merged_cells=False,
         value_render_option=None,
         date_time_render_option=None,
+        maintain_size=False,
     )
     def get_values(self, range_name=None, combine_merged_cells=False, **kwargs):
         """Returns a list of lists containing all values from specified range.
@@ -443,6 +444,25 @@ class Worksheet:
 
             Empty trailing rows and columns will not be included.
 
+        :param bool maintain_size: (optional) Returns a matrix of values matching the size of the requested range.
+
+            .. warning::
+
+                This can only work if the requested range is a complete bounded A1 notation.
+                Example: ``A1:D4``: OK, ``C3:F``: Not OK, we don't know the end size of the requested range.
+
+                This does not work with ``named_range`` either.
+
+            Examples::
+
+                # Works
+                >>> worksheet.get("A1:B2", maintain_size=True)
+                [['A1', 'B1'], ['A2', '']]
+
+                # Does NOT maintain the requested size
+                >>> worksheet.get("A1:B", maintain_size=True)
+                [['A1', 'B1'], ['A2'], [], ['A4', 'B4'], ['A5']]
+
         Examples::
 
             # Return all values from the sheet
@@ -501,8 +521,7 @@ class Worksheet:
         """
         return self.get_values(**kwargs)
 
-    def get_all_records(
-        self,
+    @accepted_kwargs(
         empty2zero=False,
         head=1,
         default_blank="",
@@ -510,6 +529,10 @@ class Worksheet:
         numericise_ignore=[],
         value_render_option=None,
         expected_headers=None,
+    )
+    def get_all_records(
+        self,
+        **kwargs,
     ):
         """Returns a list of dictionaries, all of them having the contents of
         the spreadsheet with the head row as keys and each of these
@@ -542,40 +565,153 @@ class Worksheet:
                 returned dictionaries will contain all headers even if not included in this list
 
         """
-        idx = head - 1
+        return self.get_records(**kwargs)
 
-        data = self.get_all_values(value_render_option=value_render_option)
+    def get_records(  # noqa: C901 # this comment disables the complexity check for this function
+        self,
+        empty2zero=False,
+        head=1,
+        use_index=0,
+        first_index=None,
+        last_index=None,
+        default_blank="",
+        allow_underscores_in_numeric_literals=False,
+        numericise_ignore=[],
+        value_render_option=None,
+        expected_headers=None,
+    ):
+        """Returns a list of dictionaries, all of them having the contents of
+        the spreadsheet range selected with the head row/col as keys and each of these
+        dictionaries holding the contents of subsequent selected rows/cols of cells as
+        values.
 
-        # Return an empty list if the sheet doesn't have enough rows
-        if len(data) <= idx:
-            return []
+        Cell values are numericised (strings that can be read as ints or floats
+        are converted), unless specified in numericise_ignore
 
-        keys = data[idx]
+        Can be used to read data from rows (use_index=0) or columns (use_index=1) (default is 0),
+            check the examples below for more details.
 
-        # if no given expected headers, expect all of them
+        :param bool empty2zero: (optional) Determines whether empty cells are
+            converted to zeros.
+        :param int head: (optional) Determines which index to use as keys,
+            starting from 1 following the numeration of the spreadsheet.
+        :param int use_index: (optional) Determines whether to read records and headers from rows or columns.
+            0 for rows, 1 for columns.
+        :param int first_index: (optional) row/col (depends on `use_index`) to start reading data from (inclusive) (1-based).
+        :param int last_index: (optional) row/col (depends on `use_index`) to stop reading at (inclusive) (1-based).
+        :param str default_blank: (optional) Determines which value to use for
+            blank cells, defaults to empty string.
+        :param bool allow_underscores_in_numeric_literals: (optional) Allow
+            underscores in numeric literals, as introduced in PEP 515
+        :param list numericise_ignore: (optional) List of ints of indices of
+            the columns (starting at 1) to ignore numericising, special use
+            of ['all'] to ignore numericising on all columns.
+        :param value_render_option: (optional) Determines how values should
+            be rendered in the output. See `ValueRenderOption`_ in
+            the Sheets API.
+        :type value_render_option: :namedtuple:`~gspread.utils.ValueRenderOption`
+
+        :param list expected_headers: (optional) List of expected headers, they must be unique.
+
+            .. note::
+
+                returned dictionaries will contain all headers even if not included in this list
+
+        Examples::
+
+            # Sheet data:
+            #      A    B    C
+            #
+            # 1    A1   B2   C3
+            # 2    A6   B7   C8
+            # 3    A11  B12  C13
+
+            # Read all rows from the sheet
+            >>> worksheet.get_records(use_index=0)
+            {
+                {"A1": "A6", "B2": "B7", "C3": "C8"},
+                {"A1": "A11", "B2": "B12", "C3": "C13"}
+            }
+
+            >>> worksheet.get_records(use_index=1)
+            {
+                {"A1": "B2", "A6": "B7", "A11": "B12"},
+                {"A1": "C3", "A6": "C8", "A11": "C13"}
+            }
+        """
+        # some sanity checks
+        if use_index not in [0, 1]:
+            raise ValueError("use_index must be either 0 or 1")
+        if use_index == 1:  # TODO: implement use_index=1
+            raise NotImplementedError("use_index=1 is not implemented yet")
+
+        if first_index is None:
+            first_index = head + 1
+        elif first_index <= head:
+            raise ValueError("first_index must be greater than the head row")
+        elif first_index > self.row_count:
+            raise ValueError(
+                "first_index must be less than or equal to the number of rows in the worksheet"
+            )
+
+        if last_index is None:
+            last_index = self.row_count
+        elif last_index < first_index:
+            raise ValueError("last_index must be greater than or equal to first_index")
+        elif last_index > self.row_count:
+            raise ValueError(
+                "last_index must be an integer less than or equal to the number of rows in the worksheet"
+            )
+
+        keys = self.get_values(
+            f"{head}:{head}", value_render_option=value_render_option
+        )[0]
+
         if expected_headers is None:
             expected_headers = keys
+        else:
+            expected_headers_are_unique = len(expected_headers) == len(
+                set(expected_headers)
+            )
+            if not expected_headers_are_unique:
+                raise GSpreadException("the given 'expected_headers' are not uniques")
 
-        # keys must:
-        # - be uniques
-        # - be part of the complete header list
-        # - not contain extra headers
-        expected = set(expected_headers)
-        headers = set(keys)
+        # validating the headers in the worksheet
+        header_row_is_unique = len(keys) == len(set(keys))
+        if not header_row_is_unique:
+            raise GSpreadException("the header row in the worksheet is not unique")
 
-        # make sure they are uniques
-        if len(expected) != len(expected_headers):
-            raise GSpreadException("the given 'expected_headers' are not uniques")
-
-        if not expected & headers == expected:
+        # validating that the expected headers are part of the headers in the worksheet
+        if not all(header in keys for header in expected_headers):
             raise GSpreadException(
                 "the given 'expected_headers' contains unknown headers: {}".format(
-                    expected - headers
+                    set(expected_headers) - set(keys)
                 )
             )
 
+        values = self.get_values(
+            f"{first_index}:{last_index}",
+            value_render_option=value_render_option,
+        )
+
+        values_len = len(values[0])
+        keys_len = len(keys)
+        values_wider_than_keys_by = values_len - keys_len
+        default_blank_in_keys = default_blank in keys
+
+        if ((values_wider_than_keys_by > 0) and default_blank_in_keys) or (
+            values_wider_than_keys_by > 1
+        ):
+            raise GSpreadException(
+                "the header row in the worksheet contains multiple empty cells"
+            )
+        elif values_wider_than_keys_by == 1:
+            keys.append(default_blank)
+        elif values_wider_than_keys_by < 0:
+            values = fill_gaps(values, cols=keys_len, padding_value=default_blank)
+
         if numericise_ignore == ["all"]:
-            values = data[idx + 1 :]
+            pass
         else:
             values = [
                 numericise_all(
@@ -585,10 +721,12 @@ class Worksheet:
                     allow_underscores_in_numeric_literals,
                     numericise_ignore,
                 )
-                for row in data[idx + 1 :]
+                for row in values
             ]
 
-        return [dict(zip(keys, row)) for row in values]
+        formatted_records = [dict(zip(keys, row)) for row in values]
+
+        return formatted_records
 
     def get_all_cells(self):
         """Returns a list of all `Cell` of the current sheet."""
@@ -780,6 +918,7 @@ class Worksheet:
         major_dimension=None,
         value_render_option=None,
         date_time_render_option=None,
+        maintain_size=False,
     )
     def get(self, range_name=None, **kwargs):
         """Reads values of a single range or a cell of a sheet.
@@ -835,6 +974,26 @@ class Worksheet:
                 This is ignored if ``value_render_option`` is ``ValueRenderOption.formatted``.
 
              The default ``date_time_render_option`` is ``DateTimeOption.serial_number``.
+
+        :param bool maintain_size: (optional) Returns a matrix of values matching the size of the requested range.
+
+            .. warning::
+
+                This can only work if the requested range is a complete bounded A1 notation.
+                Example: ``A1:D4``: OK, ``C3:F``: Not OK, we don't know the end size of the requested range.
+
+                This does not work with ``named_range`` either.
+
+            Examples::
+
+                # Works
+                >>> worksheet.get("A1:B2", maintain_size=True)
+                [['A1', 'B1'], ['A2', '']]
+
+                # Does NOT maintain the requested size
+                >>> worksheet.get("A1:B", maintain_size=True)
+                [['A1', 'B1'], ['A2'], [], ['A4', 'B4'], ['A5']]
+
         :type date_time_render_option: :namedtuple:`~gspread.utils.DateTimeOption`
 
          :rtype: :class:`gspread.worksheet.ValueRange`
@@ -866,6 +1025,19 @@ class Worksheet:
         )
 
         response = self.spreadsheet.values_get(range_name, params=params)
+
+        values = response.get("values", [])
+
+        # range_name must be a full grid range so that we can guarantee
+        #  startRowIndex and endRowIndex properties
+        if kwargs["maintain_size"] is True and is_full_a1_notation(range_name):
+            a1_range = get_a1_from_absolute_range(range_name)
+            grid_range = a1_range_to_grid_range(a1_range)
+            rows = grid_range["endRowIndex"] - grid_range["startRowIndex"]
+            cols = grid_range["endColumnIndex"] - grid_range["startColumnIndex"]
+            values = fill_gaps(values, rows=rows, cols=cols)
+
+        response["values"] = values
 
         return ValueRange.from_json(response)
 
@@ -1066,13 +1238,13 @@ class Worksheet:
 
         .. versionadded:: 3.3
         """
-        warnings.warn(
-            DEPRECATION_WARNING_TEMPLATE.format(
-                v_deprecated="6.0.0",
-                msg_deprecated="method signature will change to: 'Worksheet.update(value = [[]], range_name=)'"
-                " arguments 'range_name' and 'values' will swap, values will be mandatory of type: 'list(list(...))'",
-            )
+        deprecation_warning(
+            version="6.0.0",
+            msg="Method signature's arguments 'range_name' and 'values' will change their order."
+            " We recommend using named arguments for minimal impact. In addition, the argument 'values' will be mandatory of type: 'List[List]'."
+            " (ex) Worksheet.update(values = [[]], range_name=) ",
         )
+
         if is_scalar(range_name):
             range_name = absolute_range_name(self.title, range_name)
         else:
@@ -1406,12 +1578,9 @@ class Worksheet:
 
         .. versionadded:: 3.4
         """
-        warnings.warn(
-            DEPRECATION_WARNING_TEMPLATE.format(
-                v_deprecated="6.0.0",
-                msg_deprecated="This function signature will change, arguments will swap places:  sort(range, specs)",
-            ),
-            DeprecationWarning,
+        deprecation_warning(
+            version="6.0.0",
+            msg="This function signature will change, arguments will swap places:  sort(range, specs)",
         )
         range_name = kwargs.pop("range", None)
 
@@ -1493,12 +1662,10 @@ class Worksheet:
         if isinstance(color, str):
             color = convert_hex_to_colors_dict(color)
         else:
-            warnings.warn(
-                message=DEPRECATION_WARNING_TEMPLATE.format(
-                    v_deprecated="6.0.0",
-                    msg_deprecated="""color format will change to hex format "#RRGGBB".
+            deprecation_warning(
+                version="6.0.0",
+                msg="""color format will change to hex format "#RRGGBB".
                     To suppress this warning, first convert color to hex with "gspread.utils.convert_colors_to_hex_value(color)""",
-                )
             )
 
         red, green, blue = color["red"], color["green"], color["blue"]

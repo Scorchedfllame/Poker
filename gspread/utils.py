@@ -6,7 +6,9 @@ This module contains utility functions.
 
 """
 
+import os
 import re
+import warnings
 from collections import defaultdict, namedtuple
 from collections.abc import Sequence
 from functools import wraps
@@ -15,15 +17,16 @@ from math import inf
 from typing import Mapping
 from urllib.parse import quote as uquote
 
-from google.auth import Credentials as Credentials
-from google.oauth2 import Credentials as UserCredentials
-from google.oauth2 import Credentials as ServiceAccountCredentials
+from google.auth.credentials import Credentials as Credentials
+from google.oauth2.credentials import Credentials as UserCredentials
+from google.oauth2.service_account import Credentials as ServiceAccountCredentials
 
 from .exceptions import IncorrectCellLabel, InvalidInputValue, NoValidUrlKeyFound
 
 MAGIC_NUMBER = 64
 CELL_ADDR_RE = re.compile(r"([A-Za-z]+)([1-9]\d*)")
 A1_ADDR_ROW_COL_RE = re.compile(r"([A-Za-z]+)?([1-9]\d*)?$")
+A1_ADDR_FULL_RE = re.compile(r"[A-Za-z]+\d+:[A-Za-z]+\d+")  # e.g. A1:B2 not A1:B
 
 URL_KEY_V1_RE = re.compile(r"key=([^&#]+)")
 URL_KEY_V2_RE = re.compile(r"/spreadsheets/d/([a-zA-Z0-9-_]+)")
@@ -91,6 +94,8 @@ DEPRECATION_WARNING_TEMPLATE = (
 )
 
 REQUIRED_KWARGS = "required"
+
+SILENCE_WARNINGS_ENV_KEY = "GSPREAD_SILENCE_WARNINGS"
 
 
 def convert_credentials(credentials):
@@ -533,12 +538,12 @@ def wid_to_gid(wid):
     return str(int(widval, 36) ^ xorval)
 
 
-def rightpad(row, max_len):
+def rightpad(row, max_len, padding_value=""):
     pad_len = max_len - len(row)
-    return row + ([""] * pad_len) if pad_len != 0 else row
+    return row + ([padding_value] * pad_len) if pad_len != 0 else row
 
 
-def fill_gaps(L, rows=None, cols=None):
+def fill_gaps(L, rows=None, cols=None, padding_value=""):
     """Fill gaps in a list of lists.
     e.g.,::
 
@@ -554,10 +559,12 @@ def fill_gaps(L, rows=None, cols=None):
     :param L: List of lists to fill gaps in.
     :param rows: Number of rows to fill.
     :param cols: Number of columns to fill.
+    :param padding_value: Default value to fill gaps with.
 
     :type L: list[list[T]]
     :type rows: int
     :type cols: int
+    :type padding_value: T
 
     :return: List of lists with gaps filled.
     :rtype: list[list[T]]:
@@ -571,7 +578,7 @@ def fill_gaps(L, rows=None, cols=None):
         if pad_rows:
             L = L + ([[]] * pad_rows)
 
-        return [rightpad(row, max_cols) for row in L]
+        return [rightpad(row, max_cols, padding_value=padding_value) for row in L]
     except ValueError:
         return []
 
@@ -580,7 +587,7 @@ def cell_list_to_rect(cell_list):
     if not cell_list:
         return []
 
-    rows = defaultdict(lambda: {})
+    rows = defaultdict(dict)
 
     row_offset = min(c.row for c in cell_list)
     col_offset = min(c.col for c in cell_list)
@@ -863,6 +870,64 @@ def convert_colors_to_hex_value(
         raise ValueError("Color value out of accepted range 0-1.")
 
     return f"#{to_hex(red)}{to_hex(green)}{to_hex(blue)}"
+
+
+def is_full_a1_notation(range_name: str) -> bool:
+    """Check if the range name is a full A1 notation.
+    "A1:B2", "Sheet1!A1:B2" are full A1 notations
+    "A1:B", "A1" are not
+
+    Args:
+        range_name (str): The range name to check.
+
+    Returns:
+        bool: True if the range name is a full A1 notation, False otherwise.
+
+    Examples:
+
+        >>> is_full_a1_notation("A1:B2")
+        True
+
+        >>> is_full_a1_notation("A1:B")
+        False
+    """
+    return A1_ADDR_FULL_RE.search(range_name) is not None
+
+
+def get_a1_from_absolute_range(range_name: str) -> str:
+    """Get the A1 notation from an absolute range name.
+    "Sheet1!A1:B2" -> "A1:B2"
+    "A1:B2" -> "A1:B2"
+
+    Args:
+        range_name (str): The range name to check.
+
+    Returns:
+        str: The A1 notation of the range name stripped of the sheet.
+    """
+    if "!" in range_name:
+        return range_name.split("!")[1]
+    return range_name
+
+
+def deprecation_warning(version: str, msg: str) -> None:
+    """Emit a deprecation warning.
+
+    ..note::
+
+        This warning can be silenced by setting the environment variable:
+        GSPREAD_SILENCE_WARNINGS=1
+    """
+
+    # do not emit warning if env variable is set specifically to 1
+    if os.getenv(SILENCE_WARNINGS_ENV_KEY, "0") == "1":
+        return
+
+    warnings.warn(
+        DEPRECATION_WARNING_TEMPLATE.format(v_deprecated=version, msg_deprecated=msg),
+        DeprecationWarning,
+        4,  # showd the 4th stack: [1]:current->[2]:deprecation_warning->[3]:<gspread method/function>->[4]:<user's code>
+    )
 
 
 if __name__ == "__main__":

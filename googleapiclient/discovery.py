@@ -125,7 +125,6 @@ STACK_QUERY_PARAMETER_DEFAULT_VALUE = {"type": "string", "location": "query"}
 # Library-specific reserved words beyond Python keywords.
 RESERVED_WORDS = frozenset(["body"])
 
-
 # patch _write_lines to avoid munging '\r' into '\n'
 # ( https://bugs.python.org/issue18886 https://bugs.python.org/issue19003 )
 class _BytesGenerator(BytesGenerator):

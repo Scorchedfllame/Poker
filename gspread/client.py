@@ -6,11 +6,10 @@ This module contains Client class responsible for communicating with
 Google API.
 
 """
-import warnings
 from http import HTTPStatus
 from typing import Any, Dict, List, Tuple, Type
 
-from google.auth import AuthorizedSession
+from google.auth.transport.requests import AuthorizedSession
 from requests import Response
 
 from .exceptions import APIError, SpreadsheetNotFound, UnSupportedExportFormat
@@ -21,10 +20,10 @@ from .urls import (
     DRIVE_FILES_UPLOAD_API_V2_URL,
 )
 from .utils import (
-    DEPRECATION_WARNING_TEMPLATE,
     ExportFormat,
     MimeType,
     convert_credentials,
+    deprecation_warning,
     extract_id_from_url,
     finditem,
 )
@@ -53,7 +52,7 @@ class Client:
         self.timeout = None
 
     def login(self):
-        from google.auth import Request
+        from google.auth.transport.requests import Request
 
         self.auth.refresh(Request(self.session))
 
@@ -610,12 +609,9 @@ class BackoffClient(Client):
     _MAX_BACKOFF_REACHED = False  # Stop after reaching _MAX_BACKOFF
 
     def __init__(self, auth):
-        warnings.warn(
-            DEPRECATION_WARNING_TEMPLATE.format(
-                v_deprecated="6.0.0",
-                msg_deprecated="this class will be deprecated and moved to gspread.http_client package",
-            ),
-            DeprecationWarning,
+        deprecation_warning(
+            version="6.0.0",
+            msg="this class will be deprecated and moved to gspread.http_client package",
         )
         super().__init__(auth)
 
