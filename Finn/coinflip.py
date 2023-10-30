@@ -21,8 +21,8 @@ four_twenties = 0
 first_time = time.time()
 
 
-while not zero:
-    # for x in range(50):
+# while not zero:
+for x in range(10):
     heads = 0
     tails = 0
     for i in range(1*10**6):
@@ -55,7 +55,7 @@ while not zero:
     #     print(dif)
     else:
         attempts += 1
-    #print(dif)
+    # print(dif)
 
 
 minutes = str(int((str(time.time() - first_time)).split('.', 1)[0]) / 60)
