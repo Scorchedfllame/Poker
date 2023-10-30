@@ -22,6 +22,7 @@ first_time = time.time()
 
 
 while not zero:
+    # for x in range(50):
     heads = 0
     tails = 0
     for i in range(1*10**6):
@@ -65,7 +66,7 @@ dif_list.sort()
 print('ZERO!!!!!')
 print('Time:', minutes.split('.')[0], "minutes and", seconds.split('.')[0], "seconds")
 print('Attempts:', attempts)
-print('Attempts per second:', (total_seconds/attempts))
+print('Attempts per second:', (attempts/total_seconds))
 print('Average Differance:', int(total/attempts))
 print('Largest Difference:', largest)
 print('Total # of Heads:', total_heads)
