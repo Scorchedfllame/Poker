@@ -3,7 +3,9 @@ import time
 import threading
 
 
+zero = False
 def till_zero1():
+    global zero
     zero1 = False
     attempts1 = 0
     heads1 = 0
@@ -22,8 +24,8 @@ def till_zero1():
     dif_list1 = []
     four_twenties1 = 0
     first_time1 = time.time()
-    #while not zero1:
-    for x in range(10):
+    while not zero:
+        # for x in range(10):
         heads1 = 0
         tails1 = 0
         for i in range(1*10**6):
@@ -47,11 +49,12 @@ def till_zero1():
             else:
                 counter1 += 1
         if dif1 >= largest1:
-            largest = dif1
+            largest1 = dif1
         if dif1 == 420:
             four_twenties1 += 1
         if not dif1:
             zero1 = True
+            zero = True
         # elif dif <= 10:
         #     print(dif)
         else:
@@ -67,7 +70,7 @@ def till_zero1():
     final1.append(time.time() - first_time1)
     final1.append(attempts1)
     final1.append(attempts1 / total_seconds1)
-    final1.append(int(total1 / attempts1))
+    final1.append(total1)
     final1.append(largest1)
     final1.append(total_heads1)
     final1.append(total_tails1)
@@ -77,6 +80,7 @@ def till_zero1():
 
 
 def till_zero2():
+    global zero
     zero2 = False
     attempts2 = 0
     heads2 = 0
@@ -95,8 +99,8 @@ def till_zero2():
     dif_list2 = []
     four_twenties2 = 0
     first_time2 = time.time()
-    #while not zero2:
-    for x in range(10):
+    while not zero:
+        # for x in range(10):
         heads2 = 0
         tails2 = 0
         for i in range(1*10**6):
@@ -125,6 +129,7 @@ def till_zero2():
             four_twenties2 += 1
         if not dif2:
             zero2 = True
+            zero = True
         # elif dif <= 10:
         #     print(dif)
         else:
@@ -141,7 +146,7 @@ def till_zero2():
     final2.append(time.time() - first_time2)
     final2.append(attempts2)
     final2.append(attempts2 / total_seconds2)
-    final2.append(int(total2 / attempts2))
+    final2.append(total2)
     final2.append(largest2)
     final2.append(total_heads2)
     final2.append(total_tails2)
@@ -151,6 +156,7 @@ def till_zero2():
 
 
 def till_zero3():
+    global zero
     zero3 = False
     attempts3 = 0
     heads3 = 0
@@ -169,8 +175,8 @@ def till_zero3():
     dif_list3 = []
     four_twenties3 = 0
     first_time3 = time.time()
-    #while not zero3:
-    for x in range(10):
+    while not zero:
+        # for x in range(10):
         heads3 = 0
         tails3 = 0
         for i in range(1 * 10 ** 6):
@@ -199,6 +205,7 @@ def till_zero3():
             four_twenties3 += 1
         if not dif3:
             zero3 = True
+            zero = True
         # elif dif <= 10:
         #     print(dif)
         else:
@@ -215,7 +222,7 @@ def till_zero3():
     final3.append(time.time() - first_time3)
     final3.append(attempts3)
     final3.append(attempts3 / total_seconds3)
-    final3.append(int(total3 / attempts3))
+    final3.append(total3)
     final3.append(largest3)
     final3.append(total_heads3)
     final3.append(total_tails3)
@@ -251,14 +258,24 @@ print(final3)
 print('ZERO!!!!!')
 # print('Time:', minutes.split('.')[0], "minutes and", seconds.split('.')[0], "seconds")
 print('Attempts:', final1[2] + final2[2] + final3[2])
+
+
+if final1[0]:
+    total_seconds = final1[1]
+elif final2[0]:
+    total_seconds = final2[1]
+elif final2[0]:
+    total_seconds = final3[1]
+
+
 print('Attempts per second:', ((final1[2] + final2[2] + final3[2]) / total_seconds))
-print('Average Differance:', int(total/attempts))
-print('Largest Difference:', largest)
-print('Total # of Heads:', total_heads)
-print('Total # of Tails:', total_tails)
-print("420's:", four_twenties)
-print("Digits:", digits)
-print('Differences:', dif_list)
+print('Average Differance:', int((final1[4] + final2[4] + final3[4]) / (final1[2] + final2[2] + final3[2])))
+# print('Largest Difference:', largest)
+# print('Total # of Heads:', total_heads)
+# print('Total # of Tails:', total_tails)
+# print("420's:", four_twenties)
+# print("Digits:", digits)
+# print('Differences:', dif_list)
 
 # minutes = str(int((str(time.time() - first_time)).split('.', 1)[0]) / 60)
 # seconds = str(float('.' + (str(minutes).split('.', 1)[1])) * 60)
